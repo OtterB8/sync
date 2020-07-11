@@ -1253,6 +1253,10 @@ is divided into following sections:
     <target name="-post-jar">
         <!-- Empty placeholder for easier customization. -->
         <!-- You can override this target in the ../build.xml file. -->
+        <copy todir="../confluentinc-kafka-connect-elasticsearch-5.5.1/libs">
+            <fileset dir="dist">
+            </fileset>
+        </copy>
     </target>
     <target depends="init,compile,-pre-jar,-set-module-main-class,-do-jar-without-libraries,-do-jar-with-libraries,-post-jar" name="-do-jar"/>
     <target depends="init,compile,-pre-jar,-do-jar,-post-jar,deploy" description="Build JAR." name="jar"/>
