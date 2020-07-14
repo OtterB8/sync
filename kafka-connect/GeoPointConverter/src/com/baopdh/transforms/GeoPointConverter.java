@@ -130,7 +130,7 @@ public class GeoPointConverter<R extends ConnectRecord<R>> implements Transforma
         final Struct updatedValue = new Struct(updatedSchema);
         updatedSchema.fields().stream().forEach(field -> {
             try {
-                updatedValue.put(field, value.get(field));
+                updatedValue.put(field, value.get(field.name()));
             } catch (Exception e) {} //ignore if field not exist
         });
         
