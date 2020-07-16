@@ -1251,9 +1251,11 @@ is divided into following sections:
     <target depends="init,compile,-pre-pre-jar,-pre-jar,-do-jar-create-manifest,-do-jar-copy-manifest,-do-jar-set-mainclass,-do-jar-set-profile,-do-jar-set-splashscreen,-do-jar-jar,-do-jar-delete-manifest" name="-do-jar-without-libraries"/>
     <target depends="init,compile,-pre-pre-jar,-pre-jar,-do-jar-create-manifest,-do-jar-copy-manifest,-do-jar-set-mainclass,-do-jar-set-profile,-do-jar-set-splashscreen,-do-jar-copylibs,-do-jar-delete-manifest" name="-do-jar-with-libraries"/>
     <target name="-post-jar">
-        <!-- Empty placeholder for easier customization. -->
-        <!-- You can override this target in the ../build.xml file. -->
         <copy todir="../confluentinc-kafka-connect-elasticsearch-5.5.1/libs">
+            <fileset dir="dist">
+            </fileset>
+        </copy>
+        <copy todir="../../kafka-connect-in-cluster/confluentinc-kafka-connect-elasticsearch-5.5.1/libs">
             <fileset dir="dist">
             </fileset>
         </copy>

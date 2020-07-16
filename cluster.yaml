@@ -1,4 +1,4 @@
-version: '2'
+﻿version: '2'
 services:
   zookeeper-1:
     image: confluentinc/cp-zookeeper:latest
@@ -50,6 +50,7 @@ services:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: localhost:22181,localhost:32181,localhost:42181
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:19092
+      KAFKA_DEFAULT_REPLICATION_FACTOR: ${REPLICATION_FACTOR}
     extra_hosts:
       - "moby:127.0.0.1"
 
@@ -64,6 +65,7 @@ services:
       KAFKA_BROKER_ID: 2
       KAFKA_ZOOKEEPER_CONNECT: localhost:22181,localhost:32181,localhost:42181
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:29092
+      KAFKA_DEFAULT_REPLICATION_FACTOR: ${REPLICATION_FACTOR}
     extra_hosts:
       - "moby:127.0.0.1"
 
@@ -78,6 +80,7 @@ services:
       KAFKA_BROKER_ID: 3
       KAFKA_ZOOKEEPER_CONNECT: localhost:22181,localhost:32181,localhost:42181
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:39092
+      KAFKA_DEFAULT_REPLICATION_FACTOR: ${REPLICATION_FACTOR}
     extra_hosts:
       - "moby:127.0.0.1"
 
@@ -98,6 +101,7 @@ services:
     depends_on:
       - zookeeper-1
       - zookeeper-2
+      - zookeeper-3
     environment:
      - SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL=localhost:32181
      - SCHEMA_REGISTRY_HOST_NAME=localhost
@@ -105,27 +109,29 @@ services:
 
   connect:
     build:
-      context: ./kafka-connect
-      args:
-        DEBEZIUM_VERSION: ${DEBEZIUM_VERSION}
+      context: ./kafka-connect-in-cluster
     network_mode: host
     ports:
      - 8083:8083
     depends_on:
       - kafka-1
       - kafka-2
+      - kafka-3
     environment:
-     - BOOTSTRAP_SERVERS=localhost:29092
-     - GROUP_ID=1
-     - CONFIG_STORAGE_TOPIC=my_connect_configs
-     - OFFSET_STORAGE_TOPIC=my_connect_offsets
-     - STATUS_STORAGE_TOPIC=my_connect_statuses
-     - KEY_CONVERTER=io.confluent.connect.avro.AvroConverter
-     - VALUE_CONVERTER=io.confluent.connect.avro.AvroConverter
-     - INTERNAL_KEY_CONVERTER=org.apache.kafka.connect.json.JsonConverter
-     - INTERNAL_VALUE_CONVERTER=org.apache.kafka.connect.json.JsonConverter
+     - CONNECT_BOOTSTRAP_SERVERS=localhost:19092,localhost:29092,localhost:39092
+     - CONNECT_REST_PORT=8083
+     - CONNECT_GROUP_ID=1
+     - CONNECT_CONFIG_STORAGE_TOPIC=my_connect_configs
+     - CONNECT_OFFSET_STORAGE_TOPIC=my_connect_offsets
+     - CONNECT_STATUS_STORAGE_TOPIC=my_connect_statuses
+     - CONNECT_KEY_CONVERTER=io.confluent.connect.avro.AvroConverter
+     - CONNECT_VALUE_CONVERTER=io.confluent.connect.avro.AvroConverter
      - CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL=http://localhost:8081
      - CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL=http://localhost:8081
+     - CONNECT_INTERNAL_KEY_CONVERTER=org.apache.kafka.connect.json.JsonConverter
+     - CONNECT_INTERNAL_VALUE_CONVERTER=org.apache.kafka.connect.json.JsonConverter
+     - CONNECT_REST_ADVERTISED_HOST_NAME=localhost
+     - CONNECT_PLUGIN_PATH=/usr/share/java,/etc/kafka-connect/jars
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.8.0
