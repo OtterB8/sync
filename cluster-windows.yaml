@@ -12,6 +12,9 @@ services:
       ZOOKEEPER_SYNC_LIMIT: 2
       ZOOKEEPER_SERVERS: zookeeper-1:12888:13888;zookeeper-2:22888:23888;zookeeper-3:32888:33888
       KAFKA_OPTS: "-Dzookeeper.4lw.commands.whitelist=*"
+    # volumes:
+    #   - "E:/tmp/vol1:/var/lib/zookeeper/data"
+    #   - "E:/tmp/vol2:/var/lib/zookeeper/log"
   zookeeper-2:
     image: confluentinc/cp-zookeeper:latest
     ports:
@@ -37,7 +40,7 @@ services:
       ZOOKEEPER_SERVERS: zookeeper-1:12888:13888;zookeeper-2:22888:23888;zookeeper-3:32888:33888
       KAFKA_OPTS: "-Dzookeeper.4lw.commands.whitelist=*"
 
-  kafka:
+  kafka-1:
     image: debezium/kafka:${DEBEZIUM_VERSION}
     ports:
       - 19092:9092
@@ -49,20 +52,33 @@ services:
       - BROKER_ID=1
       - ZOOKEEPER_CONNECT=zookeeper-1:12181,zookeeper-2:22181,zookeeper-3:32181
       - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:19092
-      - KAFKA_DEFAULT_REPLICATION_FACTOR=1
-  # kafka-2:
-  #   image: debezium/kafka:${DEBEZIUM_VERSION}
-  #   ports:
-  #     - 29092:9092
-  #   depends_on:
-  #     - zookeeper-1
-  #     - zookeeper-2
-  #     - zookeeper-3
-  #   environment:
-  #     - BROKER_ID=2
-  #     - ZOOKEEPER_CONNECT=zookeeper-1:12181,zookeeper-2:22181,zookeeper-3:32181
-  #     - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:29092
-  #     - KAFKA_DEFAULT_REPLICATION_FACTOR=${REPLICATION_FACTOR}
+      - KAFKA_DEFAULT_REPLICATION_FACTOR=${REPLICATION_FACTOR}
+  kafka-2:
+    image: debezium/kafka:${DEBEZIUM_VERSION}
+    ports:
+      - 29092:9092
+    depends_on:
+      - zookeeper-1
+      - zookeeper-2
+      - zookeeper-3
+    environment:
+      - BROKER_ID=2
+      - ZOOKEEPER_CONNECT=zookeeper-1:12181,zookeeper-2:22181,zookeeper-3:32181
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:29092
+      - KAFKA_DEFAULT_REPLICATION_FACTOR=${REPLICATION_FACTOR}
+  kafka-3:
+    image: debezium/kafka:${DEBEZIUM_VERSION}
+    ports:
+      - 39092:9092
+    depends_on:
+      - zookeeper-1
+      - zookeeper-2
+      - zookeeper-3
+    environment:
+      - BROKER_ID=3
+      - ZOOKEEPER_CONNECT=zookeeper-1:12181,zookeeper-2:22181,zookeeper-3:32181
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:39092
+      - KAFKA_DEFAULT_REPLICATION_FACTOR=${REPLICATION_FACTOR}
 
   mysql:
     image: debezium/example-mysql:${DEBEZIUM_VERSION}
@@ -91,12 +107,13 @@ services:
     ports:
      - 8083:8083
     depends_on:
-     - kafka
-     # - kafka-2
+     - kafka-1
+     - kafka-2
+     - kafka-3
      - mysql
      - schema-registry
     environment:
-     - BOOTSTRAP_SERVERS=kafka:9092
+     - BOOTSTRAP_SERVERS=kafka-1:9092,kafka-2:9092,kafka-3:9092
      - GROUP_ID=1
      - CONFIG_STORAGE_TOPIC=my_connect_configs
      - OFFSET_STORAGE_TOPIC=my_connect_offsets
@@ -108,29 +125,13 @@ services:
      - CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL=http://schema-registry:8081
      - CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL=http://schema-registry:8081
 
-  # elasticsearch:
-  #   image: docker.elastic.co/elasticsearch/elasticsearch:7.8.0
-  #   environment:
-  #     - node.name=es01
-  #     - cluster.name=docker-cluster
-  #     - bootstrap.memory_lock=true
-  #     - cluster.initial_master_nodes=es01
-  #     - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-  #   ulimits:
-  #     memlock:
-  #       soft: -1
-  #       hard: -1
-  #   ports:
-  #     - 9200:9200
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.8.0
-    container_name: es01
     environment:
       - node.name=es01
-      - cluster.name=es-docker-cluster
-      - discovery.seed_hosts=es02,es03
-      - cluster.initial_master_nodes=es01,es02,es03
+      - cluster.name=docker-cluster
       - bootstrap.memory_lock=true
+      - cluster.initial_master_nodes=es01
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ulimits:
       memlock:
@@ -138,31 +139,47 @@ services:
         hard: -1
     ports:
       - 9200:9200
-  es02:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.8.0
-    container_name: es02
-    environment:
-      - node.name=es02
-      - cluster.name=es-docker-cluster
-      - discovery.seed_hosts=es01,es03
-      - cluster.initial_master_nodes=es01,es02,es03
-      - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-  es03:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.8.0
-    container_name: es03
-    environment:
-      - node.name=es03
-      - cluster.name=es-docker-cluster
-      - discovery.seed_hosts=es01,es02
-      - cluster.initial_master_nodes=es01,es02,es03
-      - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
+  # es01:
+  #   image: docker.elastic.co/elasticsearch/elasticsearch:7.8.0
+  #   container_name: es01
+  #   environment:
+  #     - node.name=es01
+  #     - cluster.name=es-docker-cluster
+  #     - discovery.seed_hosts=es02,es03
+  #     - cluster.initial_master_nodes=es01,es02,es03
+  #     - bootstrap.memory_lock=true
+  #     - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+  #   ulimits:
+  #     memlock:
+  #       soft: -1
+  #       hard: -1
+  #   ports:
+  #     - 9200:9200
+  # es02:
+  #   image: docker.elastic.co/elasticsearch/elasticsearch:7.8.0
+  #   container_name: es02
+  #   environment:
+  #     - node.name=es02
+  #     - cluster.name=es-docker-cluster
+  #     - discovery.seed_hosts=es01,es03
+  #     - cluster.initial_master_nodes=es01,es02,es03
+  #     - bootstrap.memory_lock=true
+  #     - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+  #   ulimits:
+  #     memlock:
+  #       soft: -1
+  #       hard: -1
+  # es03:
+  #   image: docker.elastic.co/elasticsearch/elasticsearch:7.8.0
+  #   container_name: es03
+  #   environment:
+  #     - node.name=es03
+  #     - cluster.name=es-docker-cluster
+  #     - discovery.seed_hosts=es01,es02
+  #     - cluster.initial_master_nodes=es01,es02,es03
+  #     - bootstrap.memory_lock=true
+  #     - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+  #   ulimits:
+  #     memlock:
+  #       soft: -1
+  #       hard: -1
