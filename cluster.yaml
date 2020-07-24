@@ -12,8 +12,8 @@ services:
       ZOOKEEPER_SERVERS: localhost:12888:13888;localhost:22888:23888;localhost:32888:33888
     network_mode: host
     volumes:
-      - "/home/cpu60019/Downloads/kafka/vol1/zk1-data:/var/lib/zookeeper/data"
-      - "/home/cpu60019/Downloads/kafka/vol2/zk1-txn-logs:/var/lib/zookeeper/log"
+      - "${DATA_PATH}zk/vol1/zk1-data:/var/lib/zookeeper/data"
+      - "${DATA_PATH}zk/vol2/zk1-txn-logs:/var/lib/zookeeper/log"
   zookeeper-2:
     image: confluentinc/cp-zookeeper:latest
     container_name: zk2
@@ -26,8 +26,8 @@ services:
       ZOOKEEPER_SERVERS: localhost:12888:13888;localhost:22888:23888;localhost:32888:33888
     network_mode: host
     volumes:
-      - "/home/cpu60019/Downloads/kafka/vol1/zk2-data:/var/lib/zookeeper/data"
-      - "/home/cpu60019/Downloads/kafka/vol2/zk2-txn-logs:/var/lib/zookeeper/log"
+      - "${DATA_PATH}zk/vol1/zk2-data:/var/lib/zookeeper/data"
+      - "${DATA_PATH}zk/vol2/zk2-txn-logs:/var/lib/zookeeper/log"
   zookeeper-3:
     image: confluentinc/cp-zookeeper:latest
     container_name: zk3
@@ -40,8 +40,8 @@ services:
       ZOOKEEPER_SERVERS: localhost:12888:13888;localhost:22888:23888;localhost:32888:33888
     network_mode: host
     volumes:
-      - "/home/cpu60019/Downloads/kafka/vol1/zk3-data:/var/lib/zookeeper/data"
-      - "/home/cpu60019/Downloads/kafka/vol2/zk3-txn-logs:/var/lib/zookeeper/log"
+      - "${DATA_PATH}zk/vol1/zk3-data:/var/lib/zookeeper/data"
+      - "${DATA_PATH}zk/vol2/zk3-txn-logs:/var/lib/zookeeper/log"
 
   kafka-1:
     image: confluentinc/cp-kafka:latest
@@ -58,7 +58,7 @@ services:
       KAFKA_DEFAULT_REPLICATION_FACTOR: ${REPLICATION_FACTOR}
       KAFKA_LOG4J_ROOT_LOGLEVEL: ERROR
     volumes:
-      - "/home/cpu60019/Downloads/kafka/vol3/kafka1-data:/var/lib/kafka/data"
+      - "${DATA_PATH}kafka/kafka1-data:/var/lib/kafka/data"
   kafka-2:
     image: confluentinc/cp-kafka:latest
     container_name: kafka-2
@@ -74,7 +74,7 @@ services:
       KAFKA_DEFAULT_REPLICATION_FACTOR: ${REPLICATION_FACTOR}
       KAFKA_LOG4J_ROOT_LOGLEVEL: ERROR
     volumes:
-      - "/home/cpu60019/Downloads/kafka/vol3/kafka2-data:/var/lib/kafka/data"  
+      - "${DATA_PATH}kafka/kafka2-data:/var/lib/kafka/data"
   kafka-3:
     image: confluentinc/cp-kafka:latest
     container_name: kafka-3
@@ -90,7 +90,7 @@ services:
       KAFKA_DEFAULT_REPLICATION_FACTOR: ${REPLICATION_FACTOR}
       KAFKA_LOG4J_ROOT_LOGLEVEL: ERROR
     volumes:
-      - "/home/cpu60019/Downloads/kafka/vol3/kafka3-data:/var/lib/kafka/data"
+      - "${DATA_PATH}kafka/kafka3-data:/var/lib/kafka/data"
 
   mysql:
     image: debezium/example-mysql:${DEBEZIUM_VERSION}

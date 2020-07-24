@@ -101,11 +101,11 @@ public class GeoPointConverter<R extends ConnectRecord<R>> implements Transforma
         
         final Map<String, Object> updatedValue = new HashMap<>(value);
         try {
-//            double lat = Double.valueOf((String)updatedValue.get(latField));
-//            double lon = Double.valueOf((String)updatedValue.get(lonField));
-//            
-//            updatedValue.put(newFieldName, String.format("%f,%f", lat, lon));
-            updatedValue.put(newFieldName, "Simple Test");
+            double lat = (Double) updatedValue.get(latField);
+            double lon = (Double) updatedValue.get(lonField);
+            
+            updatedValue.put(newFieldName, String.format("%f,%f", lat, lon));
+//            updatedValue.put(newFieldName, "Simple Test");
             
             if (isDropFields) {
                 updatedValue.remove(latField);
@@ -135,13 +135,13 @@ public class GeoPointConverter<R extends ConnectRecord<R>> implements Transforma
         });
         
         try {
-//            double lat = Double.valueOf((String)value.get(latField));
-//            double lon = Double.valueOf((String)value.get(lonField));
-//            
-//            updatedValue.put(newFieldName, String.format("%f,%f", lat, lon));
-            String s1 = (String) value.get(latField);
-            String s2 = (String) value.get(lonField);
-            updatedValue.put(newFieldName, s1 + "," + s2);
+            double lat = (Double) value.get(latField);
+            double lon = (Double) value.get(lonField);
+            updatedValue.put(newFieldName, String.format("%f,%f", lat, lon));
+
+//            String s1 = (String) value.get(latField);
+//            String s2 = (String) value.get(lonField);
+//            updatedValue.put(newFieldName, s1 + "," + s2);
             
             return newRecord(record, updatedSchema, updatedValue);
         } catch (NumberFormatException nfe) {
